@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Weather App</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="card">
+        <div class="header">
+            <div class="search">
+                <input type="text" class="search-box" placeholder="Enter city name">
+                <button class="search-button">Search</button>
+            </div>
+            <button class="unit-toggle">°C</button>
+        </div>
+        
+        <div class="error">
+            <p>Invalid city name. Please try again.</p>
+        </div>
+
+        <div class="weather-display">
+            <!-- Main weather display will be injected here -->
+        </div>
+
+        <div class="forecast-container">
+            <!-- 5-Day forecast will be injected here -->
+        </div>
+    </div>
+
+    <!-- ADD THE SKYCONS SCRIPT HERE -->
+    <script src="https://cdn.jsdelivr.net/npm/skycons@1.0.0/skycons.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
