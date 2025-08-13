@@ -92,9 +92,10 @@ body {
 }
 
 .main-weather-icon {
-    width: 150px;
-    height: 150px;
-    margin: 10px auto;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: block;
 }
 
 .temp {
@@ -146,6 +147,7 @@ body {
     transition: opacity 1s ease-in-out 0.3s;
     /* === FIX FOR OVERFLOW === */
     gap: 8px; /* Reduced gap from 10px to prevent overflow */
+flex-wrap: wrap;
 }
 
 .forecast-container.visible {
@@ -153,7 +155,7 @@ body {
 }
 
 .forecast-day {
-    flex: 1;
+    flex: 1 1 calc(20% - 8px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -161,6 +163,7 @@ body {
     padding: 15px 5px;
     border-radius: 15px;
     cursor: pointer;
+    max-width: 80px;
     border: 2px solid transparent;
     transition: background-color 0.3s, border-color 0.3s;
 }
@@ -195,4 +198,5 @@ body {
     font-size: 16px;
     color: #ff5c5c;
     display: none;
+
 }
