@@ -1,16 +1,13 @@
-// Get references to DOM elements
 const searchBox = document.querySelector(".search-box");
 const searchButton = document.querySelector(".search-button");
 const weatherDisplay = document.querySelector(".weather-display");
 const forecastContainer = document.querySelector(".forecast-container");
 const errorDisplay = document.querySelector(".error");
 
-// API details - IMPORTANT: Replace with your own API key
 const apiKey = "c76c1509bc3a5bb3cc2f530c39330736";
 const currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
 const forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?units=metric&q=";
 
-// --- Main function to get all weather data ---
 async function getWeather(city) {
     weatherDisplay.classList.remove("visible");
     forecastContainer.classList.remove("visible");
@@ -29,13 +26,11 @@ async function getWeather(city) {
         displayForecast(forecastData);
 
     } catch (error) {
-        console.error("Error:", error.message);
         errorDisplay.innerHTML = `<p>${error.message}</p>`;
         errorDisplay.style.display = "block";
     }
 }
 
-// --- Function to display current weather ---
 function displayCurrentWeather(data) {
     const { name } = data;
     const { icon, description } = data.weather[0];
@@ -43,12 +38,11 @@ function displayCurrentWeather(data) {
     const { speed } = data.wind;
 
     const weatherHTML = `
-        <img src="https://openweathermap.org/img/wn/${icon}@4x.png" alt="${description}" class="weather-icon">
+        <img src="https://openweathermap.org/img/wn/${icon}@4x.png" alt="${description}" class="main-weather-icon">
         <h1 class="temp">${Math.round(temp)}°c</h1>
         <h2 class="city">${name}</h2>
         <div class="details">
             <div class="col">
-                <!-- FIXED ICON URL -->
                 <img src="https://cdn-icons-png.flaticon.com/512/728/728093.png" alt="humidity icon">
                 <div>
                     <p class="humidity">${humidity}%</p>
@@ -56,8 +50,7 @@ function displayCurrentWeather(data) {
                 </div>
             </div>
             <div class="col">
-                <!-- REPLACED IMAGE WITH TEXT ICON -->
-                <span class="wind-icon">></span>
+                <img src="https://cdn-icons-png.flaticon.com/512/481/481476.png" alt="wind icon">
                 <div>
                     <p class="wind">${speed.toFixed(1)} km/h</p>
                     <p>Wind Speed</p>
@@ -69,7 +62,6 @@ function displayCurrentWeather(data) {
     weatherDisplay.classList.add("visible");
 }
 
-// --- Function to display 5-day forecast ---
 function displayForecast(data) {
     let forecastHTML = '';
     const dailyForecasts = data.list.filter(item => item.dt_txt.includes("12:00:00"));
@@ -83,7 +75,7 @@ function displayForecast(data) {
         forecastHTML += `
             <div class="forecast-day">
                 <p class="day">${dayName}</p>
-                <img src="https://openweathermap.org/img/wn/${icon}@4x.png" alt="${description}" class="main-weather-icon">
+                <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon">
                 <p class="temp-range">${temp}°c</p>
             </div>
         `;
@@ -93,7 +85,6 @@ function displayForecast(data) {
     forecastContainer.classList.add("visible");
 }
 
-// --- Event Listeners ---
 searchButton.addEventListener("click", () => {
     const city = searchBox.value.trim();
     if (city) getWeather(city);
@@ -106,8 +97,7 @@ searchBox.addEventListener("keydown", (event) => {
     }
 });
 
-// Load a default city on page load
 window.addEventListener('load', () => {
     getWeather("New York");
-
 });
+
