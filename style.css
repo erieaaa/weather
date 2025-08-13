@@ -128,12 +128,6 @@ body {
     margin-right: 10px;
 }
 
-.col .wind-icon {
-    font-size: 40px;
-    font-weight: 100;
-    margin-right: 15px;
-}
-
 .humidity, .wind {
     font-size: 24px;
     font-weight: 500;
@@ -143,11 +137,8 @@ body {
     margin-top: 40px;
     display: flex;
     justify-content: space-between;
-    opacity: 0;
-    transition: opacity 1s ease-in-out 0.3s;
-    /* === FIX FOR OVERFLOW === */
-    gap: 8px; /* Reduced gap from 10px to prevent overflow */
-flex-wrap: wrap;
+    gap: 8px;
+    flex-wrap: wrap; /* Allows wrapping on small screens */
 }
 
 .forecast-container.visible {
@@ -155,7 +146,8 @@ flex-wrap: wrap;
 }
 
 .forecast-day {
-    flex: 1 1 calc(20% - 8px);
+    flex: 1 1 calc(20% - 8px); /* evenly sized */
+    max-width: 80px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -163,7 +155,6 @@ flex-wrap: wrap;
     padding: 15px 5px;
     border-radius: 15px;
     cursor: pointer;
-    max-width: 80px;
     border: 2px solid transparent;
     transition: background-color 0.3s, border-color 0.3s;
 }
@@ -172,17 +163,12 @@ flex-wrap: wrap;
     background: #5e5e5e;
 }
 
-.forecast-day.active {
-    background: #007bff;
-    border-color: #fff;
-}
-
 .forecast-day .day {
     font-size: 16px;
     font-weight: 500;
 }
 
-.forecast-day-icon {
+.forecast-day img {
     width: 50px;
     height: 50px;
     margin: 5px 0;
@@ -198,5 +184,4 @@ flex-wrap: wrap;
     font-size: 16px;
     color: #ff5c5c;
     display: none;
-
 }
