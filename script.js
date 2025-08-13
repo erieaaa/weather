@@ -83,7 +83,7 @@ function displayForecast(data) {
         forecastHTML += `
             <div class="forecast-day">
                 <p class="day">${dayName}</p>
-                <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon">
+                <img src="https://openweathermap.org/img/wn/${icon}@4x.png" alt="${description}" class="main-weather-icon">
                 <p class="temp-range">${temp}°c</p>
             </div>
         `;
@@ -109,4 +109,5 @@ searchBox.addEventListener("keydown", (event) => {
 // Load a default city on page load
 window.addEventListener('load', () => {
     getWeather("New York");
+
 });
