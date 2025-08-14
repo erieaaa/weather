@@ -1,5 +1,5 @@
 // ===== Config =====
-const API_KEY = "c76c1509bc3a5bb3cc2f530c39330736"; // <- replace me
+const API_KEY = "73cca61287abbce27976f056c3edcbb6"; // <- replace me
 const CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather";
 const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
 
@@ -190,3 +190,4 @@ unitBtn.addEventListener("click", () => {
 
 // Load a default city
 window.addEventListener("load", () => getWeather("New York"));
+
