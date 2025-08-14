@@ -1,138 +1,91 @@
-// DOM refs
-const searchBox = document.querySelector(".search-box");
-const searchButton = document.querySelector(".search-button");
-const weatherDisplay = document.querySelector(".weather-display");
-const forecastContainer = document.querySelector(".forecast-container");
-const errorDisplay = document.querySelector(".error");
-const unitToggle = document.querySelector(".unit-toggle");
+// ===== Config =====
+const API_KEY = "c76c1509bc3a5bb3cc2f530c39330736"; // <- replace me
+const CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather";
+const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
 
-// API (keep your API key safe)
-const apiKey = "c76c1509bc3a5bb3cc2f530c39330736";
-const currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
-const forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?units=metric&q=";
+// ===== DOM =====
+const input = document.querySelector(".search-input");
+const searchBtn = document.querySelector(".search-btn");
+const unitBtn = document.querySelector(".unit-btn");
+const currentEl = document.querySelector(".current");
+const forecastEl = document.querySelector(".forecast");
+const errorEl = document.querySelector(".error");
 
-// basic unit state (we keep Celsius as default for now)
-let unit = "metric"; // metric = Celsius
+// units: "metric" (°C, m/s) or "imperial" (°F, mph)
+let units = "metric";
+
+function fmtTemp(n) {
+  return `${Math.round(n)}${units === "metric" ? "°c" : "°f"}`;
+}
+function fmtWind(speed) {
+  // API returns m/s (metric) or miles/hour (imperial)
+  if (units === "metric") {
+    const kmh = speed * 3.6;
+    return `${kmh.toFixed(1)} km/h`;
+  }
+  return `${speed.toFixed(1)} mph`;
+}
 
 async function getWeather(city) {
-  // reset UI
-  weatherDisplay.classList.remove("visible");
-  forecastContainer.innerHTML = "";
-  errorDisplay.style.display = "none";
+  errorEl.style.display = "none";
+  currentEl.classList.remove("visible");
+  forecastEl.innerHTML = "";
 
   try {
-    const currentResponse = await fetch(currentWeatherUrl + encodeURIComponent(city) + `&appid=${apiKey}`);
-    if (!currentResponse.ok) throw new Error("City not found.");
-    const currentData = await currentResponse.json();
+    // CURRENT
+    const currentRes = await fetch(
+      `${CURRENT_URL}?q=${encodeURIComponent(city)}&units=${units}&appid=${API_KEY}`
+    );
+    if (!currentRes.ok) throw new Error("City not found.");
+    const current = await currentRes.json();
 
-    const forecastResponse = await fetch(forecastUrl + encodeURIComponent(city) + `&appid=${apiKey}`);
-    if (!forecastResponse.ok) throw new Error("Forecast not available.");
-    const forecastData = await forecastResponse.json();
+    // FORECAST (5 days / 3-hour steps)
+    const forecastRes = await fetch(
+      `${FORECAST_URL}?q=${encodeURIComponent(city)}&units=${units}&appid=${API_KEY}`
+    );
+    if (!forecastRes.ok) throw new Error("Forecast not available.");
+    const forecast = await forecastRes.json();
 
-    displayCurrentWeather(currentData);
-    displayForecast(forecastData);
-  } catch (err) {
-    errorDisplay.innerHTML = `<p>${err.message}</p>`;
-    errorDisplay.style.display = "block";
+    renderCurrent(current);
+    renderForecastToSunday(forecast);
+  } catch (e) {
+    errorEl.textContent = e.message;
+    errorEl.style.display = "block";
   }
 }
 
-function displayCurrentWeather(data) {
-  const { name } = data;
-  const { icon, description } = data.weather[0];
-  const { temp, humidity } = data.main;
-  const { speed } = data.wind;
+function renderCurrent(data) {
+  const icon = data.weather?.[0]?.icon ?? "01d";
+  const desc = data.weather?.[0]?.description ?? "—";
+  const temp = data.main?.temp ?? 0;
+  const humidity = data.main?.humidity ?? 0;
+  const wind = data.wind?.speed ?? 0;
+  const name = data.name ?? "—";
 
-  const html = `
-    <img src="https://openweathermap.org/img/wn/${icon}@4x.png" alt="${description}" class="main-weather-icon" />
-    <div class="temp">${Math.round(temp)}°c</div>
+  currentEl.innerHTML = `
+    <img class="icon" src="https://openweathermap.org/img/wn/${icon}@4x.png" alt="${desc}">
+    <div class="temp">${fmtTemp(temp)}</div>
     <div class="city">${name}</div>
-
-    <div class="details">
-      <div class="col">
-        <img class="icon-small" src="https://cdn-icons-png.flaticon.com/512/728/728093.png" alt="humidity icon" />
+    <div class="meta">
+      <div class="pair">
+        <img src="https://cdn-icons-png.flaticon.com/512/728/728093.png" alt="humidity" width="34" height="34">
         <div>
-          <div class="humidity">${humidity}%</div>
-          <p class="small">Humidity</p>
+          <div style="font-weight:600">${humidity}%</div>
+          <div class="label">Humidity</div>
         </div>
       </div>
-
-      <div class="col">
-        <img class="icon-small" src="https://cdn-icons-png.flaticon.com/512/481/481476.png" alt="wind icon" />
+      <div class="pair">
+        <img src="https://cdn-icons-png.flaticon.com/512/481/481476.png" alt="wind" width="34" height="34">
         <div>
-          <div class="wind">${(speed).toFixed(1)} km/h</div>
-          <p class="small">Wind Speed</p>
+          <div style="font-weight:600">${fmtWind(wind)}</div>
+          <div class="label">Wind Speed</div>
         </div>
       </div>
     </div>
   `;
-
-  weatherDisplay.innerHTML = html;
-  // animate in
-  setTimeout(() => weatherDisplay.classList.add("visible"), 30);
+  requestAnimationFrame(() => currentEl.classList.add("visible"));
 }
 
-function displayForecast(data) {
-  // pick roughly one forecast per day (12:00:00) — if api returns less, fallback gracefully
-  const daily = data.list.filter(item => item.dt_txt.includes("12:00:00"));
-  // if less than 5 entries (some timezones), just take first 6 unique days
-  let forecasts = daily;
-  if (forecasts.length < 5) {
-    // collect by date key
-    const byDay = {};
-    for (const item of data.list) {
-      const d = new Date(item.dt * 1000);
-      const key = d.toISOString().split("T")[0];
-      if (!byDay[key]) byDay[key] = item;
-    }
-    forecasts = Object.values(byDay).slice(0, 6);
-  } else {
-    forecasts = forecasts.slice(0, 6); // show up to 6 days
-  }
-
-  const html = forecasts.map(day => {
-    const date = new Date(day.dt * 1000);
-    const dayName = date.toLocaleString('en-US', { weekday: 'short' });
-    const icon = day.weather[0].icon;
-    const temp = Math.round(day.main.temp);
-    return `
-      <div class="forecast-day">
-        <div class="day">${dayName}</div>
-        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="icon" />
-        <div class="temp-range">${temp}°c</div>
-      </div>
-    `;
-  }).join("");
-
-  forecastContainer.innerHTML = html;
-}
-
-// events
-searchButton.addEventListener("click", () => {
-  const city = searchBox.value.trim();
-  if (city) getWeather(city);
-});
-searchBox.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    const city = searchBox.value.trim();
-    if (city) getWeather(city);
-  }
-});
-
-// basic toggle placeholder (C <-> F)
-// (keeps UI toggle but doesn't re-fetch with imperial units; quick demo)
-unitToggle.addEventListener("click", () => {
-  if (unit === "metric") {
-    unit = "imperial";
-    unitToggle.textContent = "°F";
-    // You can implement re-fetching with units=imperial and update displays later
-  } else {
-    unit = "metric";
-    unitToggle.textContent = "°C";
-  }
-});
-
-// load a default city on load
-window.addEventListener("load", () => {
-  getWeather("New York");
-});
+/**
+ * Builds daily forecast cards from TODAY → upcoming SUNDAY (inclusive).
+ * Uses
