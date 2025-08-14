@@ -88,4 +88,105 @@ function renderCurrent(data) {
 
 /**
  * Builds daily forecast cards from TODAY → upcoming SUNDAY (inclusive).
- * Uses
+ * Uses city.timezone to localize each 3-hour step, then aggregates per local day.
+ * Shows high/low (or single temp if not enough points), and prefers a midday icon.
+ */
+function renderForecastToSunday(forecast) {
+  const tz = forecast.city?.timezone ?? 0; // seconds offset from UTC
+  const nowUtc = Date.now(); // ms
+  const localNow = new Date(nowUtc + tz * 1000);
+
+  // compute end-of-range Sunday (0=Sun..6=Sat)
+  const dow = localNow.getUTCDay(); // using UTC day of the shifted "local" time
+  const daysUntilSun = (7 - dow) % 7; // if today is Sunday => 0
+  const end = new Date(localNow);
+  end.setUTCDate(end.getUTCDate() + daysUntilSun);
+  end.setUTCHours(23, 59, 59, 999);
+
+  // group forecast items by LOCAL date (YYYY-MM-DD)
+  const byDay = new Map();
+  for (const item of forecast.list) {
+    const local = new Date(item.dt * 1000 + tz * 1000);
+    // ignore anything before today (shouldn't happen but just in case)
+    if (local < stripTime(localNow)) continue;
+    if (local > end) continue;
+
+    const key = local.toISOString().slice(0, 10);
+    if (!byDay.has(key)) byDay.set(key, []);
+    byDay.get(key).push({ local, item });
+  }
+
+  // sort keys ascending by date
+  const keys = Array.from(byDay.keys()).sort();
+
+  // Build cards
+  const cards = keys.map(key => {
+    const entries = byDay.get(key);
+
+    // choose icon closest to 12:00 local
+    let chosen = entries[0];
+    const targetH = 12;
+    for (const e of entries) {
+      if (Math.abs(e.local.getUTCHours() - targetH) < Math.abs(chosen.local.getUTCHours() - targetH)) {
+        chosen = e;
+      }
+    }
+    const icon = chosen.item.weather?.[0]?.icon ?? "01d";
+
+    // compute min/max
+    let min = +Infinity, max = -Infinity;
+    for (const e of entries) {
+      const t = e.item.main?.temp;
+      if (typeof t === "number") {
+        if (t < min) min = t;
+        if (t > max) max = t;
+      }
+    }
+    if (!isFinite(min) || !isFinite(max)) {
+      const t = chosen.item.main?.temp ?? 0;
+      min = max = t;
+    }
+
+    const d = entries[0].local;
+    const dayName = d.toLocaleString("en-US", { weekday: "short" });
+
+    return `
+      <div class="card-day">
+        <div class="day">${dayName}</div>
+        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="icon">
+        <div class="range">${fmtTemp(min)} / ${fmtTemp(max)}</div>
+      </div>
+    `;
+  }).join("");
+
+  forecastEl.innerHTML = cards || `<div style="opacity:.8">No upcoming entries up to Sunday.</div>`;
+}
+
+function stripTime(d) {
+  const c = new Date(d);
+  c.setUTCHours(0,0,0,0);
+  return c;
+}
+
+// ===== Events =====
+searchBtn.addEventListener("click", () => {
+  const q = input.value.trim();
+  if (q) getWeather(q);
+});
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    const q = input.value.trim();
+    if (q) getWeather(q);
+  }
+});
+
+// Simple unit toggle + refresh current query if present
+unitBtn.addEventListener("click", () => {
+  units = units === "metric" ? "imperial" : "metric";
+  unitBtn.textContent = units === "metric" ? "°C" : "°F";
+  const q = input.value.trim();
+  if (q) getWeather(q);
+});
+
+// Load a default city
+window.addEventListener("load", () => getWeather("New York"));
