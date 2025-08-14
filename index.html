@@ -3,33 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Interactive Weather App</title>
+  <title>Weather to Sunday</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-
   <div class="card">
-    <!-- top search row -->
-    <div class="top-row">
-      <div class="search">
-        <input type="text" class="search-box" placeholder="Enter city name" />
-        <button class="search-button">Search</button>
-      </div>
-      <button class="unit-toggle">°C</button>
+    <!-- Search bar with unit inside the rounded box -->
+    <div class="searchbar">
+      <input type="text" class="search-input" placeholder="Enter city name" />
+      <button class="unit-btn" title="Toggle units">°C</button>
+      <button class="search-btn">Search</button>
     </div>
 
-    <div class="error">
-      <p>Invalid city name. Please try again.</p>
-    </div>
+    <div class="error" role="alert"></div>
 
-    <div class="weather-display">
-      <!-- main weather will be injected here -->
-    </div>
+    <section class="current" aria-live="polite">
+      <!-- Current weather injected here -->
+    </section>
 
-    <div class="forecast-container">
-      <!-- forecast cards injected here -->
-    </div>
+    <h3 class="section-title">Forecast to Sunday</h3>
+    <section class="forecast" aria-live="polite">
+      <!-- Daily cards injected here -->
+    </section>
   </div>
 
   <script src="script.js"></script>
